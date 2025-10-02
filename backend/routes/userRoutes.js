@@ -109,7 +109,6 @@ const getUserFromToken = (token) => {
 
 router.post("/signup", async (req, res, next) => {
   const { name, email, password, age } = req.body;
-  console.log(name);
   try {
     const user = await User.findOne({ email });
     if (user) {
@@ -149,9 +148,7 @@ router.post("/login", async (req, res, next) => {
 
 router.post("/getGoals", async (req, res, next) => {
   const { userToken } = req.body;
-  console.log(userToken);
   const userId = getUserFromToken(userToken).id;
-  console.log(userId);
   if (!userToken) {
     return res.status(401).json({ error: "Authorization token missing" });
   }
@@ -172,7 +169,6 @@ router.post(
   "/createGoal",
   async (req, res, next) => {
     const { goalDetails } = req.body;
-    console.log(goalDetails);
     try {
       const investmentAmount = +goalDetails.investmentAmount;
       const targetAmount = +goalDetails.targetAmount;
@@ -193,7 +189,6 @@ router.post(
       const projected_return = response.data.portfolio_metrics.total_return;
       const sharpe_ratio = response.data.portfolio_metrics.sharpe_ratio;
       const projected_cagr = response.data.portfolio_metrics.annualized_return;
-      console.log(projected_return, sharpe_ratio, projected_cagr);
       const allocation = await Allocation.create({
         stock: stock * 100,
         fixedDeposit: fixedDeposit * 100,
@@ -205,7 +200,6 @@ router.post(
         projected_cagr: projected_cagr * 100,
       });
 
-      console.log("Allocation saved:", allocation);
       req.allocation = allocation._id;
 
       next();
@@ -224,7 +218,6 @@ router.post(
       frequency,
       duration,
     } = goalDetails;
-    console.log(goalDetails);
     if (!userToken) {
       return res.status(401).json({ error: "Authorization token missing" });
     }
@@ -234,18 +227,6 @@ router.post(
 
     try {
       const allocation = req.allocation;
-      console.log(
-        userId,
-        goalName,
-        investmentType,
-        investmentAmount,
-        targetAmount,
-        riskTolerance,
-        frequency,
-        duration,
-        progress,
-        allocation
-      );
       const newGoal = await Goal.create({
         userId,
         goalName,
@@ -258,7 +239,6 @@ router.post(
         progress,
         allocation,
       });
-      console.log("first");
       res.status(200).json({ message: "Successful", goalId: newGoal._id });
     } catch (error) {
       next(error);
@@ -269,7 +249,6 @@ router.post(
 router.delete("/deleteGoal", async (req, res, next) => {
   try {
     const { userToken, goalId } = req.body;
-    console.log(goalId);
 
     const userId = getUserFromToken(userToken).id;
     if (!userToken) {
@@ -279,7 +258,6 @@ router.delete("/deleteGoal", async (req, res, next) => {
     if (!goal) {
       throw generateError("No Goal with this ID", 404);
     }
-    console.log(goalId);
     await Allocation.findByIdAndDelete(goal.allocation);
     await Goal.findByIdAndDelete(goalId);
     res.status(200).json({ message: "Deletion sucessfull" });
@@ -293,8 +271,6 @@ router.put("/updateGoal/", async (req, res, next) => {
     const { userToken, goalDetails } = req.body;
     const userId = getUserFromToken(userToken).id;
     const { progress } = goalDetails;
-    console.log(userId);
-    console.log(goalDetails);
     if (!userToken) {
       return res.status(401).json({ error: "Authorization token missing" });
     }
@@ -307,7 +283,6 @@ router.put("/updateGoal/", async (req, res, next) => {
       { progress },
       { new: true }
     );
-    console.log(updatedGoal);
     res.status(200).json({ message: "Successfull" });
   } catch (error) {
     next(error);
